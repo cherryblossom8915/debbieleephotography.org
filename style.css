@@ -1,0 +1,20 @@
+body {margin: 0;padding: 0;font-family: 'Arial', serif;min-height:96.5vh;position:relative;}
+html {background-color:#FCFFF8;min-height:100%;min-width:900px;}
+.nav {color: #000000;list-style: none;text-align: right;padding: 20px 0 20px 0;}
+.nav > li > a {display: block;padding: 0 15px 0 15px;font-size: 12px;float: right;}
+.nav > li > a {text-decoration: none;color: #000000;}
+.nav > li > a:hover {color: #c1c1c1;}
+.nav > .logo {color: #000000;float: left;height: 40px;width: auto;font-weight: bold;margin: auto;}
+.nav > .logo > a > img {height: 40px;width: auto;margin-top: -15px;}
+.logo > a {text-decoration: none;color: #000000;}
+.banner {width: 100%;height: auto;display: block;overflow: hidden;}
+.banner > .banner-image {width: 100%;margin: -10% 0 -25% 0;display: block;}
+.description {width: 700px;margin: auto;line-height: 21px;font-size: 14px;}
+.portrait {width: 700px;height: auto;display: block;margin-left: auto;margin-right: auto;}
+.title {font-size: 30px;text-align:center;}
+.fotorama__caption {text-align:center;}
+.fotorama__wrap {margin:auto;}
+* {max-width: 100%;}
+.bluehost {display:block;position:absolute;bottom:0;left:auto;right:auto;padding-top:2.5rem;height:2.5rem;color:#3575f5;text-align:center;font-size:14px;width:100%;margin:auto;}
+.bluehost > p > a > img {height:14px;padding-top:7px;}
+hr {height:1px;border:0.5px;border-color:silver;background-color:silver;}

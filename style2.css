@@ -1,0 +1,10 @@
+.album {text-align:center;text-decoration:none;color:#524233;line-height:18px;font-weight:bold;font-size:14px;letter-spacing:2px;}
+.sort {text-align:center;background-image:url(img/wood.jpg);padding:25px;border:1px solid #524233;width:350px;}
+.collapse {padding: 0 25px 50px 25px;display:inline-block;}
+.center {margin:auto;text-align:center;}
+.caption {padding-top:10px;}
+.shadow {border:5px inset rgba(82,62,51,0.5);}
+.frame {border:5px outset rgba(82,62,51,0.5);}
+input {width:700px;height:40px;text-align:center;}
+.content{padding-bottom:2.5rem;}
+.darkmode-layer, .darkmode-toggle {z-index: 500;}
