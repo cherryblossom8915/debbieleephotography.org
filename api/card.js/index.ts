@@ -1,265 +1,252 @@
-import fetch from 'node-fetch';
+import { createCanvas, loadImage, CanvasRenderingContext2D as ctx2D, Canvas, Image } from 'canvas';
+import { writeFileSync } from 'fs';
+import { join } from 'path';
+import { Gradient, Theme } from '@discord-card/core';
+export { Gradient, Theme } from '@discord-card/core';
 
-export class VACEFronJS {
-    baseURL = 'https://vacefron.nl/api';
-    crewmateColors = [
-        'black',
-        'blue',
-        'brown',
-        'cyan',
-        'darkgreen',
-        'lime',
-        'orange',
-        'pink',
-        'purple',
-        'red',
-        'white',
-        'yellow'
-    ];
 
-    /**
-     * Main function making requests to the VACEFron API.
-     * @param endpoint - The endpoint to make the request to.
-     * @param parameters - Parameters for the request.
-     * @protected
-     */
-    protected async api(endpoint: string, parameters: Record<string, string | number | boolean>): Promise<Buffer> {
-        for (const [key, value] of Object.entries(parameters)) {
-            if (value === undefined) {
-                throw new Error(`Param "${key}" of VACEfron endpoint "${endpoint}" is undefined.`);
-            }
+
+const production = true;
+
+function getFontSize(str: string) {
+    if (str.length < 18) return 30;
+    return (600 * Math.pow(str.length, -1.05)).toFixed(0);
+}
+
+async function toImage(image: ImageResolvable, name?: string) {
+    if (image instanceof Canvas) {
+        let img = new Image();
+        img.src = (image as Canvas).toDataURL();
+        return img;
+    } else if (image instanceof Image)
+        return image
+    else if (typeof image === 'string' || image instanceof Buffer)
+        return await loadImage(image)
+    else throw new Error('Invalid Image Format for: ' + name ?? 'Image');
+}
+
+const root = join(__dirname, '..', 'images')
+export var themes = {
+    'dark': { color: '#ffffff', image: join(root, 'dark.png') },
+    'circuit': { color: '#ffffff', image: join(root, 'circuit.png') },
+    'code': { color: '#ffffff', image: join(root, 'code.png'), font: 'Source Sans Pro' },
+}
+
+type Color = `#${string}` | Gradient;
+type ImageResolvable = Canvas | Image | Buffer | string;
+
+export type CardOptions = {
+    /** Select a theme with some default options */
+    theme?: (keyof typeof themes);
+    /** Options for the text on the card */
+    text?: {
+        /** Text in the Top */
+        title?: string;
+        /**Text in the middle(big) */
+        text?: string;
+        /** Text on the bottom */
+        subtitle?: string;
+        /** Font Color */
+        color?: Color;
+        /** Custom Font */
+        font?: string;
+    },
+    /** Options for the avatar */
+    avatar?: {
+        /** The Avatar Image, can be a URL/Canvas/Image or Buffer */
+        image?: ImageResolvable;
+        /** Width of the outline around the avatar */
+        outlineWidth?: number;
+        /** Color of the outline */
+        outlineColor?: Color;
+    }
+    /** Override the Background, can be a URL/Canvas/Image or Buffer  */
+    background?: ImageResolvable;
+    /** If the background should be blurred (true -> 3) */
+    blur?: boolean | number;
+    /** When enabled a blurred border is drawn, enabled by default */
+    border?: boolean;
+    /** If enabled the edges will be rounded, enabled by default */
+    rounded?: boolean;
+    //custom?: ModuleFunction;
+}
+
+
+
+
+var count = 0;
+function snap(c: Canvas) {
+    if (!production) writeFileSync(`./testing/snapshots/${count}.png`, c.toBuffer('image/png'));
+    count++;
+}
+
+
+export async function drawCard(options: CardOptions): Promise<Buffer> {
+    const w = 700, h = 250;
+    const canvas = createCanvas(w, h);
+    const ctx = canvas.getContext('2d');
+    ctx.w = ctx.width = w;
+    ctx.h = ctx.height = h;
+
+    //@ts-ignore
+    let theme: Theme;
+    let background: Image;
+
+    options.border ??= true;
+    options.rounded ??= true;
+
+    //Parsing the Theme
+    if (typeof (options.theme ?? 'code') === 'string') {
+        theme = themes[options.theme ?? 'code'];
+        if (!theme) throw new Error('Invalid theme, use: ' + Object.keys(themes).join(' | '));
+
+        background = await loadImage(theme.image);
+    } else throw new Error('Invalid theme, use: ' + Object.keys(themes).join(' | '));
+
+    if (options.background) background = await toImage(options.background, 'Background');
+
+    ctx.theme = theme;
+    /** Border width */
+    const b = 10; //Border
+
+    //Background
+    snap(canvas);
+    if (options.rounded) ctx.roundRect(0, 0, w, h, h / 15);
+    else ctx.rect(0, 0, w, h);
+    ctx.clip();
+
+    if (options.border) {
+        ctx.drawImage(background, 0, 0, w, h);
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w, h);
+        ctx.globalAlpha = 1;
+
+        ctx.blur(3);
+    }
+
+
+    snap(canvas);
+    //Rounded Edges
+    if (options.border) {
+        if (options.rounded) {
+            ctx.roundRect(
+                b, b,
+                w - 2 * b, h - 2 * b,
+                h / 20
+            );
+        } else {
+            ctx.rect(
+                b, b,
+                w - (2 * b), h - (2 * b)
+            );
+        }
+        ctx.clip();
+    } else {
+        if (options.rounded) ctx.roundRect(0, 0, w, h, h / 15).clip();
+        else ctx.rect(0, 0, w, h);
+    }
+
+
+    var temp: Canvas | Image = background;
+    if (options.blur) {
+        var blur = createCanvas(w, h), blur_ctx = blur.getContext('2d') as ctx2D;
+        blur_ctx.drawImage(background, 0, 0, w, h);
+
+        if (typeof options.blur === 'boolean') blur_ctx.blur(3);
+        else blur_ctx.blur(options.blur);
+
+        temp = blur;
+    }
+    if (options.border) ctx.drawImage(temp, b, b, w - b * 2, h - b * 2);
+    else ctx.drawImage(temp, 0, 0, w, h);
+
+
+    snap(canvas);
+
+
+    //Setting Styles
+    ctx.fillStyle = (options.text?.color ?? theme.color).toString(ctx);
+    //ctx.strokeStyle = theme.color.toString(ctx);
+    ctx.font = '30px ' + ((options.text?.font ?? theme.font) ?? 'sans-serif', 'segoe-ui-emoji');
+
+
+    //Drawing
+    //Title
+    ctx.changeFontSize('30px')
+        .fillText(options.text?.title ?? '', ctx.width / 2.7, ctx.height / 3.5);
+
+    //Text
+    ctx.changeFontSize(getFontSize(options.text?.text ?? '') + 'px')
+        .fillText(options.text?.text ?? '', ctx.width / 2.7, ctx.height / 1.8);
+
+    //Subtitle
+    ctx.changeFontSize('25px')
+        .fillText(options.text?.subtitle ?? '', ctx.width / 2.7, ctx.height / 1.3);
+
+    //Avatar Image
+    const radius = h / 2.5;
+
+    ctx.lineWidth = 6
+    ctx.beginPath();
+    ctx.arc(h / 2, h / 2, radius, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.clip();
+
+    const { avatar } = options;
+    if (avatar) {
+        const { image: avatarImage, outlineWidth, outlineColor } = avatar;
+        if (avatarImage) {
+            ctx.drawImage(
+                await toImage(avatarImage),
+                ((h / 2) - radius) + (avatar.outlineWidth ?? 0), //x
+                ((h / 2) - radius) + (avatar.outlineWidth ?? 0), //y
+                (radius * 2) - (avatar.outlineWidth ?? 0) * 2, //width
+                (radius * 2) - (avatar.outlineWidth ?? 0) * 2//height
+            );
         }
 
-        const params = new URLSearchParams(parameters as unknown as URLSearchParams);
-        const response = await fetch(`${this.baseURL}/${endpoint}?${params}`);
+        if (outlineWidth) {
+            ctx.beginPath();
+            ctx.arc(h / 2, h / 2, radius - (outlineWidth / 2), 0, Math.PI * 2, true);
+            ctx.closePath();
 
-        if (response.status !== 200) {
-            const body = await response.json();
-            throw new Error(`"${endpoint}" endpoint: ${body.message} (status ${body.code})`);
+            ctx.lineWidth = outlineWidth;
+            ctx.strokeStyle = (outlineColor ?? theme.color ?? '#fff').toString(ctx);
+
+            ctx.stroke();
         }
-
-        return response.buffer();
     }
 
-    /**
-     * Makes a request for the batman slap meme.
-     * @param text1 - Robin's dialogue.
-     * @param text2 - Batman's dialogue.
-     * @param batman - Batman's avatar URL.
-     * @param robin - Robin's avatar URL.
-     */
-    public batmanSlap(text1: string, text2: string, batman: string, robin: string): Promise<Buffer> {
-        return this.api('batmanslap', {
-            text1,
-            text2,
-            batman,
-            robin
-        });
-    }
+    snap(canvas);
 
-    /**
-     * Makes a request for the car reverse meme.
-     * @param text - The text for the meme.
-     */
-    public carReverse(text: string): Promise<Buffer> {
-        return this.api('carreverse', { text });
-    }
 
-    /**
-     * Makes a request for the distracted boyfriend meme.
-     * @param boyfriendAvatarURL - The boyfriend's avatar URL.
-     * @param womanAvatarURL - The woman's avatar URL.
-     * @param girlfriendAvatarURL - The girlfriend's avatar URL.
-     */
-    public distractedBoyfriend(boyfriendAvatarURL: string, womanAvatarURL: string, girlfriendAvatarURL: string): Promise<Buffer> {
-        return this.api('distractedbf', {
-            boyfriend: boyfriendAvatarURL,
-            woman: womanAvatarURL,
-            girlfriend: girlfriendAvatarURL
-        });
-    }
+    return canvas.toBuffer('image/png');
+}
 
-    /**
-     * Makes a request for a drip image.
-     * @param avatarURL - The avatar URL of the user.
-     */
-    public drip(avatarURL: string): Promise<Buffer> {
-        return this.api('drip', { user: avatarURL });
-    }
 
-    /**
-     * Makes a request for the Among Us Ejected meme.
-     * @param name - The name of the user being ejected.
-     * @param wasImposter - Whether this user is the imposter.
-     * @param color - The color of the Among Us character being ejected.
-     */
-    public ejected(name: string, wasImposter = Math.random() >= 0.5, color?: string): Promise<Buffer> {
-        if (!color || !this.crewmateColors.includes(color.toLowerCase())) {
-            color = this.crewmateColors[Math.floor(Math.random() * this.crewmateColors.length)];
-        }
+export async function welcomeImage(member: GuildMember, options: CardOptions = { }): Promise<Buffer> {
+    const opts = { ...options }
+    opts.text ??= { }
+    opts.avatar ??= { }
 
-        return this.api('ejected', {
-            name,
-            imposter: wasImposter,
-            crewmate: color.toLowerCase()
-        });
-    }
+    opts.text.title ??= `Welcome to this server,`;
+    opts.text.text ??= `${member.user.tag}!`;
+    opts.text.subtitle ??= `MemberCount: ${member.guild.memberCount}`;
+    opts.avatar.image ??= await loadImage(member.user.displayAvatarURL({ format: 'png' }));
 
-    /**
-     * Makes a request for the Among Us Emergency Meeting meme.
-     * @param text - The text for the meme.
-     */
-    public emergencyMeeting(text: string): Promise<Buffer> {
-        return this.api('emergencymeeting', { text });
-    }
+    return await drawCard(opts);
+}
 
-    /**
-     * Makes a request for the First Time? meme.
-     * @param avatarURL - The avatar URL of the user.
-     */
-    public firstTime(avatarURL: string): Promise<Buffer> {
-        return this.api('firsttime', { user: avatarURL });
-    }
 
-    /**
-     * Makes a request for a grave.
-     * @param avatarURL - The avatar URL of the user.
-     */
-    public grave(avatarURL: string): Promise<Buffer> {
-        return this.api('grave', { user: avatarURL });
-    }
+export async function goodbyeImage(member: GuildMember, options: CardOptions = { }): Promise<Buffer> {
+    const opts = { ...options }
+    opts.text ??= { }
+    opts.avatar ??= { }
 
-    /**
-     * Makes a request for the I Am Speed meme.
-     * @param avatarURL - The avatar URL of the user.
-     */
-    public iAmSpeed(avatarURL: string): Promise<Buffer> {
-        return this.api('iamspeed', { user: avatarURL });
-    }
+    opts.text.title ??= `Goodbye,`;
+    opts.text.text ??= `${member.user.tag}!`;
+    opts.avatar.image ??= await loadImage(member.user.displayAvatarURL({ format: 'png' }));
 
-    /**
-     * Makes a request for the I Can Milk You meme.
-     * @param faceAvatarURL - The face's avatar URL.
-     * @param cowAvatarURL - The cow's avatar URL.
-     */
-    public iCanMilkYou(faceAvatarURL: string, cowAvatarURL: string): Promise<Buffer> {
-        return this.api('icanmilkyou', {
-            user1: faceAvatarURL,
-            user2: cowAvatarURL
-        });
-    }
-
-    /**
-     * Makes a request for the heaven meme.
-     * @param avatarURL - The avatar URL of the user.
-     */
-    public heaven(avatarURL: string): Promise<Buffer> {
-        return this.api('heaven', { user: avatarURL });
-    }
-
-    /**
-     * Makes a request for the NPC meme.
-     * @param text1 - The first text parameter.
-     * @param text2 - The second text parameter.
-     */
-    public npc(text1: string, text2: string): Promise<Buffer> {
-        return this.api('npc', { text1, text2 });
-    }
-
-    /**
-     * Makes a request for a rankcard.
-     * @param username - The username of the user levelling up.
-     * @param avatarURL - The avatar of the user levelling up.
-     * @param customBackgroundURL - The custom background URL of the user levelling up.
-     * @param level - The level of the user.
-     * @param rank - The rank of the user.
-     * @param currentXP - The current amount of XP the user has.
-     * @param nextLevelXP - How much XP required to reach the next level.
-     * @param previousLevelXP - How much XP required to reach the previous level.
-     * @param xpColor - The XP bar's fill color.
-     * @param isBoosting - Whether the user is XP boosting.
-     */
-    public rankCard(
-        username: string,
-        avatarURL: string,
-        customBackgroundURL: string,
-        level: number,
-        rank: number,
-        currentXP: number,
-        nextLevelXP: number,
-        previousLevelXP: number,
-        xpColor: string,
-        isBoosting: boolean
-    ): Promise<Buffer> {
-        return this.api('rankcard', {
-            username: encodeURIComponent(username),
-            avatar: avatarURL,
-            custombg: customBackgroundURL,
-            level,
-            rank,
-            currentxp: currentXP,
-            nextlevelxp: nextLevelXP,
-            previouslevelxp: previousLevelXP,
-            xpcolor: xpColor.replace('#', ''),
-            isboosting: isBoosting
-        });
-    }
-
-    /**
-     * Makes a request for the Stonks (and Not Stonks) meme.
-     * @param avatarURL - The avatar URL of the user.
-     * @param notStonks - Whether to return a Not Stonks meme.
-     */
-    public stonks(avatarURL: string, notStonks = false): Promise<Buffer> {
-        return this.api('stonks', { user: avatarURL, notstonks: notStonks });
-    }
-
-    /**
-     * Makes a request for the table flip meme.
-     * @param avatarURL - The avatar URL of the user.
-     */
-    public tableFlip(avatarURL: string): Promise<Buffer> {
-        return this.api('tableflip', { user: avatarURL });
-    }
-
-    /**
-     * Makes a request for the water meme.
-     * @param text - The text for the meme.
-     */
-    public water(text: string): Promise<Buffer> {
-        return this.api('water', { text });
-    }
-
-    /**
-     * Widens an image.
-     * @param imageURL - The image URL to widen.
-     */
-    public wide(imageURL: string): Promise<Buffer> {
-        return this.api('wide', { image: imageURL });
-    }
-
-    /**
-     * Makes a request for the wolverine meme.
-     * @param avatarURL - The avatar URL of the user.
-     */
-    public wolverine(avatarURL: string): Promise<Buffer> {
-        return this.api('wolverine', { user: avatarURL });
-    }
-
-    /**
-     * Makes a request for the woman yelling at cat meme.
-     * @param woman - The avatar URL of the user, for the woman.
-     * @param cat - The avatar URL of the user, for the cat.
-     */
-    public womanYellingAtCat(woman: string, cat: string): Promise<Buffer> {
-        return this.api('womanyellingatcat', { woman, cat });
-    }
-
-    /**
-     * Makes a request for the dock of shame meme.
-     * @param avatarURL - The avatar URL of the user.
-     */
-    public dockOfShame(avatarURL: string): Promise<Buffer> {
-        return this.api('dockofshame', { user: avatarURL });
-    }
+    return await drawCard(opts);
 }
