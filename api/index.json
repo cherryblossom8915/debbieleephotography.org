@@ -24,20 +24,9 @@
     "GET: /womanyellingatcat?woman=USER_AVATAR&cat=USER_AVATAR"
   ], 
   "wrappers": {
-    "csharp": {
-      "github": "https://github.com/VACEfron/VACEfron.NET", 
-      "nuget": "https://www.nuget.org/packages/VACEfron.NET"
-    }, 
-    "python": {
-      "github": "https://github.com/Soheab/vacefron.py", 
-      "pypi": "https://pypi.org/project/vacefron.py"
-    }, 
     "javascript": {
-      "github": "https://github.com/lavgup/VACEfron.js", 
+      "github": "/card.js", 
       "npm": "https://npmjs.com/package/vacefron"
-    }, 
-    "java": {
-      "github": "https://github.com/thunderstorm010/VACEfron4J"
     }, 
     "Go": {
       "github": "https://github.com/lavgup/vacefron.go"
