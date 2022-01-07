@@ -2,5 +2,5 @@
     "name": "discord-welcome-card",
     "version": "4.0.3",
     "description": "Discord Welcome/Goodbye Cards",
-    "main": "card/index.js",
+    "main": "card/index.js"
 }
