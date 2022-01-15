@@ -17,6 +17,11 @@
         var c = document.getElementById("myCanvas");
         var ctx = c.getContext("2d");
         var img = document.getElementById("testing");
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(150, 75, 15, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
         ctx.drawImage(img, 135, 60, 30, 30);
         ctx.font="30px Comic Sans MS";
         ctx.fillStyle = "red";
