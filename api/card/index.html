@@ -2,23 +2,23 @@
 <html>
   <head>
     <script src="index.js"></script>
-<body>
-
-<p>Image to use:</p>
-<img id="scream" src="img_the_scream.jpg" alt="The Scream" width="220" height="277">
-<p>Canvas:</p>
-<canvas id="myCanvas" width="300" height="150" style="border:1px solid #d3d3d3;">
-Your browser does not support the HTML5 canvas tag.</canvas>
-
-<script>
-  window.onload = sample() {
-    var c = document.getElementById("myCanvas");
-    var ctx = c.getContext("2d");
-    var img = new Image;
-    img.src = card();
-    ctx.drawImage(img, 90, 130, 50, 60, 10, 10, 50, 60);
-  };
-</script>
-
-</body>
+  </head>
+  <body>
+    <p>Image to use:</p>
+    <img id="testing" src="" alt="Testing" width="220" height="277">
+    <p>Canvas:</p>
+    <canvas id="myCanvas" width="300" height="150" style="border:1px solid #d3d3d3;">
+      Your browser does not support the HTML5 canvas tag.</canvas>
+    <script>
+      document.getElementById("testing").src(card());
+    </script>
+    <script>
+      window.onload = sample() {
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        var img = document.getElementById("testing");
+        ctx.drawImage(img, 90, 130, 50, 60, 10, 10, 50, 60);
+      };
+    </script>
+  </body>
 </html>
