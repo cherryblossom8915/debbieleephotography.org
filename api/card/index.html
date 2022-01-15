@@ -2,6 +2,7 @@
 <html>
   <head>
     <script src="index.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js">
   </head>
   <body>
     <p>Image to use:</p>
@@ -10,7 +11,7 @@
     <canvas id="myCanvas" width="300" height="150" style="border:1px solid #d3d3d3;">
       Your browser does not support the HTML5 canvas tag.</canvas>
     <script src="index.js" type="text/javascript">>
-      document.getElementById("testing").src(card());
+      document.getElementById("testing").src = card();
     </script>
     <script>
       window.onload = sample() {
