@@ -17,7 +17,11 @@
         var c = document.getElementById("myCanvas");
         var ctx = c.getContext("2d");
         var img = document.getElementById("testing");
-        ctx.drawImage(img, 10, 10);
+        ctx.drawImage(img, 135, 60, 30, 30);
+        ctx.font="30px Comic Sans MS";
+        ctx.fillStyle = "red";
+        ctx.textAlign = "center";
+        ctx.fillText("Hello World", canvas.width/2, canvas.height/1.25);
       };
     </script>
   </body>
