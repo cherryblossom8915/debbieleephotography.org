@@ -40,5 +40,13 @@
         ctx.fillText("Member #254", canvas.width/2, canvas.height/1.1);
       };
     </script>
+    <script>
+      var download = function() {
+        var link = document.createElement('a');
+        link.download = 'filename.png';
+        link.href = document.getElementById('myCanvas').toDataURL()
+        link.click();
+      }
+    </script>
   </body>
 </html>
