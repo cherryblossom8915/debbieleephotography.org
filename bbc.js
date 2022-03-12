@@ -2,12 +2,15 @@ function openNav() {
   document.getElementById("nav").classList.toggle("show");
 }
 
-// Close the dropdown if the user clicks outside of it
-window.onclick = function(e) {
-  if (!e.target.matches('.btn')) {
-  var myDropdown = document.getElementById("nav");
-    if (myDropdown.classList.contains('show')) {
-      myDropdown.classList.remove('show');
+window.onclick = function(event) {
+  if (!event.target.matches('.nav-button')) {
+    var dropdowns = document.getElementsByClassName("nav");
+    var i;
+    for (i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains('show')) {
+        openDropdown.classList.remove('show');
+      }
     }
   }
 }
