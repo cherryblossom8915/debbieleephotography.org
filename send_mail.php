@@ -1,5 +1,5 @@
 <?php
-$webmaster_email = "chloejcook28@gmail.com, ucilikefrogs1@gmail.com";
+$webmaster_email = "chloejcook28@gmail.com";
 
 $contact_page = "contact.html";
 
